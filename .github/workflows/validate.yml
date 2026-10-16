@@ -1,0 +1,28 @@
+name: Validate
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  public-package:
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Check out public files
+        uses: actions/checkout@v4
+      - name: Install validation dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y fontconfig desktop-file-utils python3-gi shellcheck
+      - name: Audit committed files
+        run: python3 tools/verify-public.py --ref HEAD
+      - name: Check shell scripts
+        run: shellcheck -x install.sh check.sh undo.sh tools/*.sh tests/*.sh
+      - name: Test isolated installation and undo
+        run: bash tests/integration.sh
+      - name: Build the public release ZIP
+        run: python3 tools/build-release.py

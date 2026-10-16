@@ -1,0 +1,10 @@
+[Desktop Entry]
+Version=1.0
+Type=Application
+Name=Install math and English fonts
+Comment=WPS课件字体：只装原有数学英语字体
+Exec=bash -c "p=\\"\\$1\\"; shift; case \\"\\$p\\" in file://localhost/*) p=\\"\\${p#file://localhost}\\"; p=\\"\\$(printf '%%b' \\"\\${p//%%/\\\\\\\\x}\\")\\";; file:///*) p=\\"\\${p#file://}\\"; p=\\"\\$(printf '%%b' \\"\\${p//%%/\\\\\\\\x}\\")\\";; esac; p=\\"\\$(dirname -- \\"\\$p\\")\\"; for depth in 0 1 2; do if [[ -f \\"\\$p/tools/oneclick.sh\\" ]]; then exec bash \\"\\$p/tools/oneclick.sh\\" \\"\\$@\\"; fi; p=\\"\\$(dirname -- \\"\\$p\\")\\"; done; printf '找不到完整字体包，请把整个 wps-classroom-fonts 文件夹复制到桌面。\\\\n'; if [[ -t 0 ]]; then read -r _; fi; exit 1" wps-font-launch %k install math
+Terminal=true
+Icon=preferences-desktop-font
+Categories=Utility;
+StartupNotify=false

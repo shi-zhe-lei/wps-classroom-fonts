@@ -1,0 +1,37 @@
+# Only the audited OFL font files are distributable with this project.
+/fonts/*
+!/fonts/Open-stix2-otf/
+/fonts/Open-stix2-otf/*
+!/fonts/Open-stix2-otf/*.otf
+
+# Local diagnostics, imports, backups and generated releases.
+logs/
+*.log
+/private/
+/local/
+/source_archives/
+/build/
+/dist/
+*.zip
+*.tar
+*.tar.gz
+*.bak
+*.tmp
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+
+# OS / editor metadata.
+.DS_Store
+._*
+__MACOSX/
+Thumbs.db
+Desktop.ini
+.vscode/
+.idea/
+__pycache__/
+*.py[cod]
+.venv/
+.coverage

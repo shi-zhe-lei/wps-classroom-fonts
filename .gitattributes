@@ -1,0 +1,10 @@
+* text=auto eol=lf
+*.sh text eol=lf
+*.desktop text eol=lf
+*.py text eol=lf
+*.ttf binary
+*.otf binary
+*.ttc binary
+*.png binary
+# Preserve the original whitespace in the upstream license.
+licenses/STIX-OFL.txt whitespace=-blank-at-eol

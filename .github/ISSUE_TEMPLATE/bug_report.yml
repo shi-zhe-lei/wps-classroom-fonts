@@ -1,0 +1,35 @@
+name: 问题反馈
+description: 安装、检查、撤销或 WPS 字体显示异常
+title: "[Bug] "
+body:
+  - type: markdown
+    attributes:
+      value: 请勿上传完整个人日志、账号路径或包含学生信息的课件。
+  - type: input
+    id: system
+    attributes:
+      label: 系统与 WPS 版本
+      placeholder: 麒麟版本、CPU 架构、WPS 版本
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: 操作步骤
+      description: 运行了哪个命令或桌面入口？使用公开版还是本地扩展包？
+    validations:
+      required: true
+  - type: textarea
+    id: result
+    attributes:
+      label: 期望结果与实际结果
+      description: 可以粘贴经过检查的最小错误片段，去除个人内容。
+    validations:
+      required: true
+  - type: checkboxes
+    id: privacy
+    attributes:
+      label: 发布前确认
+      options:
+        - label: 已检查本条反馈，没有附上账号路径、凭据或个人课件内容。
+          required: true

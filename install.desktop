@@ -1,0 +1,10 @@
+[Desktop Entry]
+Version=1.0
+Type=Application
+Name=Install fonts
+Comment=自动安装当前包的字体：公开版 9 个，完整本地包 58 个
+Exec=bash -c "p=\\"\\$1\\"; shift; case \\"\\$p\\" in file://localhost/*) p=\\"\\${p#file://localhost}\\"; p=\\"\\$(printf '%%b' \\"\\${p//%%/\\\\\\\\x}\\")\\";; file:///*) p=\\"\\${p#file://}\\"; p=\\"\\$(printf '%%b' \\"\\${p//%%/\\\\\\\\x}\\")\\";; esac; p=\\"\\$(dirname -- \\"\\$p\\")\\"; for depth in 0 1 2; do if [[ -f \\"\\$p/tools/oneclick.sh\\" ]]; then exec bash \\"\\$p/tools/oneclick.sh\\" \\"\\$@\\"; fi; p=\\"\\$(dirname -- \\"\\$p\\")\\"; done; printf '找不到完整字体包，请把整个 wps-classroom-fonts 文件夹复制到桌面。\\\\n'; if [[ -t 0 ]]; then read -r _; fi; exit 1" wps-font-launch %k install auto
+Terminal=true
+Icon=preferences-desktop-font
+Categories=Utility;
+StartupNotify=false
