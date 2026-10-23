@@ -135,7 +135,7 @@ licenses/                        第三方字体许可证
 
 脚本及项目文档采用 [MIT License](LICENSE)；附带的 STIX Two 字体采用 [SIL Open Font License 1.1](licenses/STIX-OFL.txt)。第三方字体名称用于说明兼容目标，不代表与其厂商存在合作或背书。
 
-欢迎改进脚本、文档与测试。提交前请阅读 [贡献指南](CONTRIBUTING.md)，不要将个人日志或未确认分发许可的字体提交到仓库。发布名称、简介、Topics 和首版更新说明已整理在 [GitHub 发布准备](docs/github-setup.md)。
+欢迎改进脚本、文档与测试。提交前请阅读 [贡献指南](CONTRIBUTING.md)，不要将个人日志或未确认分发许可的字体提交到仓库。发布名称、简介、Topics、发布流程及更新说明已整理在 [GitHub 发布指南](docs/github-setup.md)。
 
 ## English guide
 

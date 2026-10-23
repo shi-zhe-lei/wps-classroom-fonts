@@ -1,51 +1,43 @@
-# GitHub 发布准备
+# GitHub 发布指南
 
 ## 仓库资料
 
-| 项目 | 已准备的内容 |
+| 项目 | 内容 |
 | --- | --- |
-| Repository name | `wps-classroom-fonts` |
+| Repository | [shi-zhe-lei/wps-classroom-fonts](https://github.com/shi-zhe-lei/wps-classroom-fonts) |
 | 显示名称 | WPS Classroom Fonts · WPS 课件字体助手 |
 | Description | 麒麟 / Linux 上的 WPS 课件字体助手：离线安装、分组撤销、字体校验与隐私友好的日志。 |
 | English description | Offline font helper for WPS on Linux: per-user installation, grouped undo, integrity checks, and privacy-conscious logs. |
 | Topics | `wps-office` `linux` `kylin` `fonts` `fontconfig` `mathematics` `education` `offline` `bash` |
 | Default branch | `main` |
 | Code license | MIT |
-| Bundled fonts | STIX Two · SIL OFL 1.1 |
-| 首版标签 | `v1.0.0` |
-| Release title | `v1.0.0 · 离线安装，分组管理` |
+| Bundled fonts | 9 个 STIX Two 字体文件 · SIL OFL 1.1 |
+| 当前版本 | `v1.1.0` |
+| Release title | `v1.1.0 · 新增课件字体组，支持独立撤销` |
 
-项目尚未设置主页地址或远程仓库地址，避免写入不存在的链接。建好 GitHub 仓库后，可把仓库主页填入 About。默认 README 已有导航、横幅、功能表、使用步骤及授权说明。
+仓库的 `main` 分支和 Release 是分别更新的。推送代码不会自动替换已有下载包；每次更新需要从对应提交重新构建，并发布新版本。
 
-## 首次发布步骤
+## 发布步骤
 
-1. 在 GitHub 创建名为 `wps-classroom-fonts` 的空仓库，不额外初始化 README 或许可证。
-2. 在 GitHub Desktop 中通过 **Add Local Repository** 选择本地项目目录。也可以使用 GitHub 给出的“push an existing repository”命令连接远程仓库并推送 `main`。
-3. 在 About 中填入上面的简介和 Topics。
-4. 查看 Actions 的 `Validate` 工作流，确认检查通过。
-5. 使用已交付的 `wps-classroom-fonts-v1.0.0.zip` 及 `.zip.sha256`，或运行 `python3 tools/build-release.py` 重新生成。构建要求已有提交且已跟踪文件没有未提交修改。
-6. 创建 `v1.0.0` Release，复制下面的更新说明，上传这两个生成文件。不要上传整个本地目录的手动压缩包。
+1. 更新 `VERSION`、`CHANGELOG.md` 和本页的版本资料，将本次更新说明保存到 `docs/releases/`。检查文档与实际字体清单一致。
+2. 按 [测试说明](../tests/README.md) 运行适用的检查。涉及本地完整包时，也要运行完整包与旧版升级测试；这些字体不会交给公开 CI。
+3. 暂存准备公开的文件后，运行 `python3 tools/verify-public.py` 检查暂存内容。检查通过后提交并推送 `main`，确认对应提交的 `Validate` 工作流通过。
+4. 运行 `python3 tools/build-release.py`。它只从当前 Git 提交生成 `build/wps-classroom-fonts-v<版本>.zip` 和 `.zip.sha256`，要求已跟踪文件没有未提交修改。
+5. 创建对应 `v<版本>` 标签的 Release 草稿，目标选用刚才检查通过的提交。填写更新说明，上传 ZIP 和 SHA-256 文件，确认附件完整后再发布，并将稳定版本设为 Latest。
+6. 从公开下载地址重新下载两个附件，校验 ZIP 的 SHA-256，确认标签指向正确提交。保留旧版 Release，方便需要时回退。
 
-GitHub Desktop 的 Publish repository 可直接发布本地仓库；发布范围以 Git 中的文件为准。先完成公开检查，再按需要选择可见性。
+不要把整个本地目录手动压缩后上传。公开发布包只附带 9 个 OFL 字体；本地扩展字体、个人日志、缓存和仓库转移包不属于发布附件。
 
-## 首版更新说明
+## v1.1.0 更新说明
 
-WPS Classroom Fonts 的首个公开版本，为麒麟 / Linux 上的课件提供离线字体准备和管理工具。
-
-- 附带 9 个 STIX Two 开源字体文件，可直接一键安装。
-- 保留完整 58 文件配置，支持在本地导入有权使用的扩展字体。
-- 数学与英语、常用中文、补充字体分别安装与撤销。
-- 安装前检查完整性和目标冲突，重复运行自动保留相同文件。
-- 撤销文件移入备份，兼容旧版安装目录。
-- 日志默认留在账号缓存中，并隐藏账号主目录和项目路径。
-- 提供隔离安装测试、桌面入口验证、公开内容检查和可重复打包工具。
-
-公开发布包仅包含 STIX Two 字体及工具；不附带 Windows、MathType、方正等未确认再分发许可的扩展字体。安装完成后请重新打开 WPS，用原课件确认实际显示效果。
+可直接使用 [v1.1.0 发布说明](releases/v1.1.0.md)。该版本增加独立的 `lesson` 课件补充组，完整本地配置从 58 个字体文件扩展到 65 个。NEU-BZ-S92 尚未取得完整字体文件，必须在发布说明中保留待补提示。
 
 ## 本地 Git 备注
 
-提交身份使用维护者指定的 Git 用户，并仅写入当前仓库配置，不改变全局 Git 配置。Git 提交会保留作者姓名和邮箱；如需 GitHub 贡献归属，应确保该邮箱已关联相应 GitHub 账号。
+使用维护者配置的 Git 提交身份。Git 提交会保留作者姓名和邮箱；不要把个人路径、日志或凭据写进文档及发布说明。
 
 ## English publication notes
 
-Create an empty GitHub repository named `wps-classroom-fonts`, add the delivered local repository in GitHub Desktop, and publish `main` manually. Set the description and topics from the table above. Wait for the `Validate` workflow to pass, then create release `v1.0.0` and attach the public ZIP and its SHA-256 file. The transfer archive containing `.git` is for moving the repository between computers; it is not a release asset.
+Pushing `main` does not update release downloads. Update the version and changelog, audit the intended public files, commit, push, and wait for `Validate` to pass for that exact commit. Run `python3 tools/build-release.py`, create a draft release targeting the verified commit, and attach the generated ZIP and SHA-256 file. Publish it as the latest stable release after checking the assets, then download the public assets again and verify their checksum. Keep previous releases available.
+
+Public releases contain only the nine OFL-licensed STIX Two fonts and the helper. The 65-file profile supports locally supplied extensions; those binaries and runtime logs must remain outside public releases. NEU-BZ-S92 remains unavailable in v1.1.0.
