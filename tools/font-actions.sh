@@ -8,9 +8,9 @@ usage() {
   cat <<'EOF'
 WPS Classroom Fonts · WPS 课件字体助手
 
-bash install.sh [open|math|chinese|extra|all]
-bash check.sh   [open|math|chinese|extra|all]
-bash undo.sh     open|math|chinese|extra|all
+bash install.sh [open|math|chinese|extra|lesson|all]
+bash check.sh   [open|math|chinese|extra|lesson|all]
+bash undo.sh     open|math|chinese|extra|lesson|all
 
 不指定安装/检查分组：完整包选择 all；仅含开源字体的包选择 open。
 本地字体只准备了一部分时，请明确指定分组；不会静默跳过缺失文件。
@@ -18,7 +18,8 @@ open     9 个 STIX Two 开源字体文件（也是 math 的子集）
 math    48 个数学、英语和符号字体文件
 chinese  5 个常用中文字体文件
 extra    5 个补充字体文件
-all     58 个字体文件，包含 math + chinese + extra
+lesson   7 个课件补充字体文件（NEU-BZ-S92 待补）
+all     65 个字体文件，包含 math + chinese + extra + lesson
 撤销必须明确指定分组。安装和撤销请使用当前账号，不要加 sudo。
 EOF
 }
@@ -39,9 +40,9 @@ if [[ "$mode" == auto ]]; then
     if [[ -f "$BASE/$relative" ]]; then present=$((present + 1)); fi
   done < "$BASE/manifests/fonts.sha256"
   case "$present" in
-    58) mode=all ;;
+    65) mode=all ;;
     9) mode=open ;;
-    *) fail '字体准备不完整。请指定 open、math、chinese 或 extra，或先导入完整字体。';;
+    *) fail '字体准备不完整。请指定 open、math、chinese、extra 或 lesson，或先导入完整字体。';;
   esac
 fi
 case "$mode" in
@@ -49,8 +50,9 @@ case "$mode" in
   math) label='数学、英语和符号字体'; expected=48 ;;
   chinese) label='常用中文字体'; expected=5 ;;
   extra) label='补充字体'; expected=5 ;;
-  all) label='全部三组字体'; expected=58 ;;
-  *) fail '只能选择 open、math、chinese、extra 或 all。';;
+  lesson) label='课件补充字体（7 个，NEU-BZ-S92 待补）'; expected=7 ;;
+  all) label='全部四组字体'; expected=65 ;;
+  *) fail '只能选择 open、math、chinese、extra、lesson 或 all。';;
 esac
 [[ "$(uname -s)" == Linux ]] || fail '请在麒麟或其他 Linux 电脑上运行。'
 for cmd in date tee mkdir sort tr grep realpath awk fc-list sha256sum mktemp cat; do
@@ -95,10 +97,11 @@ printf 'WPS 课件字体助手：%s\n选择：%s\n日志：%s\n\n' "$action" "$l
 
 PROFILE="$BASE/manifests/families.tsv"
 [[ -f "$PROFILE" && ! -L "$PROFILE" ]] || fail '缺少字体检查清单，请完整复制项目。'
+[[ -f "$BASE/manifests/pending.tsv" && ! -L "$BASE/manifests/pending.tsv" ]] || fail '缺少待补字体清单。'
 profile_subjects=(); profile_labels=(); profile_families=()
 while IFS=$'\t' read -r scope subject display family; do
   [[ -n "$scope" && "$scope" != \#* ]] || continue
-  case "$scope" in open|math|chinese|extra) ;; *) fail '检查清单分组错误。';; esac
+  case "$scope" in open|math|chinese|extra|lesson) ;; *) fail '检查清单分组错误。';; esac
   [[ -n "$subject" && -n "$display" && -n "$family" ]] || fail '检查清单不完整。'
   if [[ "$mode" == all ]]; then [[ "$scope" != open ]] || continue
   else [[ "$mode" == "$scope" ]] || continue; fi
@@ -108,7 +111,7 @@ done < "$PROFILE"
 show_status() {
   MISSING_COUNT=0
   local subject total found i missing_names
-  for subject in 数学 英语 语文 补充字体; do
+  for subject in 数学 英语 语文 补充字体 课件补充; do
     total=0; found=0; missing_names=''
     for i in "${!profile_families[@]}"; do
       [[ "${profile_subjects[$i]}" == "$subject" ]] || continue
@@ -125,11 +128,32 @@ show_status() {
     else printf '%s：需补充（已识别 %s/%s）\n%s' "$subject" "$found" "$total" "$missing_names"; fi
   done
 }
+
+# Pending requests are reported separately from files actually shipped.
+show_pending() {
+  local scope family reason
+  while IFS=$'\t' read -r scope family reason; do
+    [[ -n "$scope" && "$scope" != \#* ]] || continue
+    [[ "$mode" == all || "$mode" == "$scope" ]] || continue
+    if [[ "$action" == check ]]; then
+      if printf '%s\n' "$families" | grep -Fix -- "$family" >/dev/null; then
+        printf '待补清单中的 %s：当前账号已经识别（非本包提供）。\n' "$family"
+      else
+        printf '仍缺少：%s。%s\n' "$family" "$reason"
+        MISSING_COUNT=$((MISSING_COUNT + 1))
+      fi
+    else
+      printf '尚未随包提供：%s。%s\n' "$family" "$reason"
+    fi
+  done < "$BASE/manifests/pending.tsv"
+}
+
 if [[ "$action" == check ]]; then
   families="$(fc-list --format '%{family}\n' | tr ',' '\n' | sort -fu)"
   show_status
+  show_pending
   if [[ "$MISSING_COUNT" -gt 0 ]]; then
-    printf '\n请准备对应字体后运行：bash install.sh %s\n' "$mode"
+    printf '\n已列入清单的字体可重新安装；待补字体未随包提供，重复安装不会补齐。\n安装命令：bash install.sh %s\n' "$mode"
     exit 2
   fi
   printf '\n所选组的字体均已识别。请重新打开 WPS，用原课件确认显示效果。\n'
@@ -155,12 +179,12 @@ if [[ -e "$DEST" ]]; then
 fi
 
 font_hashes=(); font_relative=(); declare -A seen=()
-scopes=("$mode"); [[ "$mode" != all ]] || scopes=(math chinese extra)
+scopes=("$mode"); [[ "$mode" != all ]] || scopes=(math chinese extra lesson)
 for scope in "${scopes[@]}"; do
   manifest="$BASE/manifests/groups/$scope.sha256"
   [[ -f "$manifest" && ! -L "$manifest" ]] || fail '分组清单缺失，请完整复制项目。'
   while IFS= read -r line; do
-    [[ "$line" =~ ^([0-9a-f]{64})[[:space:]]{2}(fonts/(MathType-official|Open-stix2-otf|Windows-common|Chinese-common|Supplemental)/[0-9a-f]{64}\.(ttf|otf|ttc|otc))$ ]] || fail '分组清单格式不正确。'
+    [[ "$line" =~ ^([0-9a-f]{64})[[:space:]]{2}(fonts/(MathType-official|Open-stix2-otf|Windows-common|Chinese-common|Supplemental|Lesson-common)/[0-9a-f]{64}\.(ttf|otf|ttc|otc))$ ]] || fail '分组清单格式不正确。'
     digest="${BASH_REMATCH[1]}"; relative="${BASH_REMATCH[2]}"; filename="${relative##*/}"
     [[ "${filename%.*}" == "$digest" && -z "${seen[$digest]:-}" ]] || fail '清单包含重复项或文件名与校验值不符。'
     seen[$digest]=1
@@ -168,7 +192,8 @@ for scope in "${scopes[@]}"; do
       open) [[ "$relative" == fonts/Open-stix2-otf/* ]] || fail '开源组混入其他字体。';;
       chinese) [[ "$relative" == fonts/Chinese-common/* ]] || fail '中文组混入其他字体。';;
       extra) [[ "$relative" == fonts/Supplemental/* ]] || fail '补充组混入其他字体。';;
-      math) [[ "$relative" != fonts/Chinese-common/* && "$relative" != fonts/Supplemental/* ]] || fail '数学组混入其他字体。';;
+      lesson) [[ "$relative" == fonts/Lesson-common/* ]] || fail '课件组混入其他字体。';;
+      math) [[ "$relative" != fonts/Chinese-common/* && "$relative" != fonts/Supplemental/* && "$relative" != fonts/Lesson-common/* ]] || fail '数学组混入其他字体。';;
     esac
     font_hashes+=("$digest"); font_relative+=("$relative")
   done < "$manifest"
@@ -215,6 +240,7 @@ if [[ "$action" == install ]]; then
   show_status
   [[ "$MISSING_COUNT" -eq 0 ]] || { printf '仍有字体未识别，请运行 bash check.sh %s。\n' "$mode"; exit 2; }
   printf '\n所选字体安装并识别成功。重新打开 WPS 检查课件。\n'
+  show_pending
   exit 0
 fi
 

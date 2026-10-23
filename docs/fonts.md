@@ -1,6 +1,6 @@
 # 字体清单与分发范围
 
-安装清单共 58 个完整字体文件，没有裁剪字形，也没有专门加入拼音教学字体。
+安装清单共 65 个完整字体文件，没有裁剪字形，也没有专门加入拼音教学字体。
 
 | 分组 | 数量 | 代表字体 | 公开仓库中的文件 |
 | --- | ---: | --- | --- |
@@ -8,8 +8,33 @@
 | math | 48 | STIX Two、Symbol、MT Extra、Cambria Math、Euclid、Fences、Wingdings、Webdings、Arial、Times New Roman、Calibri、Cambria | 仅包含其中的 9 个 STIX Two |
 | chinese | 5 | 宋体/新宋体、黑体、楷体、仿宋、微软雅黑/UI | 不附带，按本地授权准备 |
 | extra | 5 | Courier New、Tahoma、Calibri Light、EU-BZ、方正书宋_GBK | 不附带，按本地授权准备 |
+| lesson | 7 | 等线、方正兰亭中粗黑_GBK、方正兰亭黑_GBK、方正楷体_GBK、方正黑体_GBK、方正仿宋_GBK、方正准圆_GBK | 不附带，按本地授权准备 |
 
-`open` 与 `math` 重叠；全部安装是 48 + 5 + 5 = 58。中文 TTC 文件含多个字体家族，因此检查中文组会显示 7 个家族。
+`open` 与 `math` 重叠；全部安装是 48 + 5 + 5 + 7 = 65。中文 TTC 文件含多个字体家族，因此检查中文组会显示 7 个家族。
+
+## 课件补充（lesson）
+
+本组针对课件点名要求的字体，各保留一个完整常规字体文件；未裁剪字符，未批量增加粗体、斜体或拼音字体。7 个文件共 78,020,798 字节（约 74.4 MiB）。原有数学、英语和中文组的文件与校验值保持不变。
+
+| 字体家族 | 原文件名 | 字形数量 |
+| --- | --- | ---: |
+| 方正兰亭中粗黑_GBK | FZLTZCHK.ttf | 22,026 |
+| 方正兰亭黑_GBK | FZLTHK.ttf | 22,026 |
+| 方正楷体_GBK | FZKTK.TTF | 22,026 |
+| 方正黑体_GBK | FZHTK.TTF | 22,026 |
+| 方正仿宋_GBK | FZFSK.TTF | 22,026 |
+| 方正准圆_GBK | FZY3K.TTF | 22,024 |
+| 等线 / DengXian | Deng.ttf | 29,624 |
+
+**NEU-BZ-S92 仍待补充**：当前没有取得并验证完整字体文件。旧组的 `EU-BZ` 与它不是同名字体，不会修改名称来冒充。待补项记录在 [`pending.tsv`](../manifests/pending.tsv)，不计入可安装文件数量。
+
+```bash
+bash install.sh lesson  # 安装已准备好的 7 个文件
+bash check.sh lesson    # 同时检查待补项；仍缺失时退出码为 2
+bash undo.sh lesson     # 只撤销本组 7 个文件
+```
+
+安装成功表示已提供的 7 个字体安装并被系统识别；不表示待补项已经解决。检查时如果当前账号通过其他方式已装有 NEU-BZ-S92，会如实报告已识别；本工具不会撤销该外部字体。
 
 ## 为什么没有公开全部字体
 

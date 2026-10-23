@@ -67,7 +67,7 @@ class RuntimeTests(unittest.TestCase):
         self.assertIn('已存在 9 个', self.action('install'))
         self.assertEqual(self.installed(), before)
         self.action('check')
-        self.action('check', 'all', expected=2)
+        self.assertIn('仍缺少：NEU-BZ-S92', self.action('check', 'all', expected=2))
         self.action('undo', 'open')
         self.assertEqual(self.installed(), {})
         backups = list((self.data / 'classroom-math-font-backups').glob('*/*.otf'))
@@ -171,7 +171,7 @@ class RuntimeTests(unittest.TestCase):
         from gi.repository import Gio, GLib
         for path in self.package.rglob('*.desktop'):
             self.run_command(['desktop-file-validate', str(path)])
-        for relative, expected in [('install.desktop', 0), ('check.desktop', 0), ('actions/undo-open.desktop', 0), ('actions/install-open.desktop', 0), ('actions/install-extra.desktop', 1)]:
+        for relative, expected in [('install.desktop', 0), ('check.desktop', 0), ('actions/undo-open.desktop', 0), ('actions/install-open.desktop', 0), ('actions/install-extra.desktop', 1), ('actions/install-lesson.desktop', 1), ('actions/undo-lesson.desktop', 0)]:
             path = self.package / relative
             app = Gio.DesktopAppInfo.new_from_filename(str(path))
             self.assertIsNotNone(app); self.assertTrue(app.get_boolean('Terminal'))
@@ -190,23 +190,60 @@ class RuntimeTests(unittest.TestCase):
         self.assertIn('新增 1 个', result); self.assertEqual(sha(target), value)
         self.assertFalse((self.package / 'fonts/unknown.ttf').exists())
 
-    @unittest.skipUnless(os.environ.get('WCF_TEST_FULL_SOURCE'), 'Optional local 58-file font set not provided')
+    @unittest.skipUnless(os.environ.get('WCF_TEST_FULL_SOURCE'), 'Optional local 65-file font set not provided')
     def test_full_install_every_group_undo_restore_and_legacy(self):
         self.run_command(['python3', str(self.package / 'tools/import-fonts.py'), os.environ.get('WCF_TEST_FULL_SOURCE', '')])
-        self.assertIn('新增 58 个文件', self.action('install'))
-        before = self.installed(); self.assertEqual(len(before), 58)
-        self.action('check', 'all')
+        self.assertIn('新增 65 个文件', self.action('install'))
+        before = self.installed(); self.assertEqual(len(before), 65)
+        self.assertIn('仍缺少：NEU-BZ-S92', self.action('check', 'all', expected=2))
         sentinel = self.dest / 'unrelated.txt'; sentinel.write_text('preserve')
-        for group, count in [('chinese', 5), ('extra', 5), ('math', 48)]:
+        for group, count in [('lesson', 7), ('chinese', 5), ('extra', 5), ('math', 48)]:
             self.action('undo', group)
             remaining = self.installed()
             removed = {Path(rel).name for _, rel in self.rows(group)}
-            self.assertEqual(len(remaining), 58 - count)
+            self.assertEqual(len(remaining), 65 - count)
             self.assertEqual(remaining, {k: v for k, v in before.items() if k not in removed})
             self.action('install', group); self.assertEqual(self.installed(), before)
         self.assertEqual(sentinel.read_text(), 'preserve')
         self.action('undo', 'all'); self.assertEqual(self.installed(), {})
         self.assertEqual(sentinel.read_text(), 'preserve')
+
+    @unittest.skipUnless(os.environ.get('WCF_TEST_FULL_SOURCE'), 'Optional local font set not provided')
+    def test_legacy_upgrade_and_lesson_undo_preserve_all_original_fonts(self):
+        self.run_command(['python3', str(self.package / 'tools/import-fonts.py'), os.environ['WCF_TEST_FULL_SOURCE']])
+        for group in ['math', 'chinese', 'extra']:
+            self.action('install', group)
+        original = self.installed()
+        self.assertEqual(len(original), 58)
+        result = self.action('install')
+        self.assertIn('新增 7 个文件', result)
+        self.assertIn('已存在 58 个', result)
+        self.assertIn('尚未随包提供：NEU-BZ-S92', result)
+        complete = self.installed()
+        self.assertEqual(len(complete), 65)
+        self.assertTrue(original.items() <= complete.items())
+        result = self.action('check', 'lesson', expected=2)
+        self.assertIn('课件补充：已识别（7/7）', result)
+        self.assertIn('仍缺少：NEU-BZ-S92', result)
+        self.assertNotIn('所选组的字体均已识别', result)
+        self.action('check', 'math')
+        self.action('undo', 'lesson')
+        self.assertEqual(self.installed(), original)
+        self.action('install', 'lesson')
+        self.assertEqual(self.installed(), complete)
+
+    def test_pending_check_uses_actual_account_fonts_and_respects_group(self):
+        self.action('install', 'open')
+        pending = self.package / 'manifests/pending.tsv'
+        # Fixture: a separately installed family satisfies a pending request.
+        pending.write_text('lesson\tSTIX Two Math\tFixture only\n', encoding='utf-8')
+        result = self.action('check', 'lesson', expected=2)
+        self.assertIn('STIX Two Math：当前账号已经识别（非本包提供）', result)
+        self.assertNotIn('仍缺少：STIX Two Math', result)
+        self.assertNotIn('待补清单', self.action('check', 'open'))
+        pending.unlink()
+        self.action('install', 'open', expected=1)
+        self.assertEqual(len(self.installed()), 9)
 
 
 if __name__ == '__main__':

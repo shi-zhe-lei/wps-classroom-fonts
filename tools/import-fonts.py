@@ -21,7 +21,7 @@ def digest(path):
 def main():
     parser = argparse.ArgumentParser(description='从本地字体目录导入清单中的准确版本；不会下载字体。')
     parser.add_argument('source', type=Path, help='已有字体目录或完整离线包目录')
-    parser.add_argument('--group', choices=['all', 'math', 'chinese', 'extra', 'open'], default='all')
+    parser.add_argument('--group', choices=['all', 'math', 'chinese', 'extra', 'lesson', 'open'], default='all')
     args = parser.parse_args()
     root = Path(__file__).resolve().parents[1]
     if not args.source.is_dir():

@@ -5,7 +5,7 @@ BASE="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd -P)"
 action="${1:-install}"
 mode="${2:-auto}"
 case "$action" in install|undo|check) ;; *) printf '不支持的操作。\n'; exit 1;; esac
-case "$mode" in auto|open|math|chinese|extra|all) ;; *) printf '不支持的字体组。\n'; exit 1;; esac
+case "$mode" in auto|open|math|chinese|extra|lesson|all) ;; *) printf '不支持的字体组。\n'; exit 1;; esac
 printf 'WPS 课件字体工具\n\n'
 if [[ "$action" == install ]]; then
   printf '安装会补齐所选字体，已经装好的相同文件会保留。\n请先保存课件并完全退出 WPS。\n\n'
